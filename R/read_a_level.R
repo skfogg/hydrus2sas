@@ -8,15 +8,15 @@
 #' @return A data frame with columns:
 #'   \describe{
 #'     \item{time}{Simulation time [T]}
-#'     \item{sum_r_top}{Cumulative flux at top boundary [L]}
-#'     \item{sum_r_root}{Cumulative root water uptake [L]}
-#'     \item{sum_v_top}{Cumulative actual flux at top [L]}
-#'     \item{sum_v_root}{Cumulative actual root uptake [L]}
-#'     \item{sum_v_bot}{Cumulative flux at bottom boundary [L]}
+#'     \item{sum_r_top}{Cumulative potential surface flux at top boundary [L]. infiltration -/evaporation +}
+#'     \item{sum_r_root}{Cumulative potential transpiration [L]}
+#'     \item{sum_v_top}{Cumulative actual flux at surface [L]}
+#'     \item{sum_v_root}{Cumulative actual transpiration [L]}
+#'     \item{sum_v_bot}{Cumulative flux at bottom boundary [L]. inflow +/outflow -.}
 #'     \item{h_top}{Pressure head at top node [L]}
 #'     \item{h_root}{Mean pressure head in root zone [L]}
 #'     \item{h_bot}{Pressure head at bottom node [L]}
-#'     \item{a_level}{A-level index (integer)}
+#'     \item{a_level}{A-level index (integer; current variable boundary condition number)}
 #'   }
 #'
 #' @export
@@ -34,19 +34,21 @@ read_a_level <- function(hydrus_output_path) {
   data_lines <- lines[data_start:length(lines)]
   data_lines <- data_lines[nzchar(trimws(data_lines))]
 
-  df <- read.table(
-    text    = paste(data_lines, collapse = "\n"),
-    header  = FALSE,
-    stringsAsFactors = FALSE
-  )
+  text_data <- paste(data_lines, collapse = "\n")
+  df <- as.data.frame(readr::read_fwf(
+    I(text_data),
+    col_positions = readr::fwf_positions(start = c(3,14,28,42,56,69,83,99,107,120),
+                                         end = c(12,26,40,54,68,82,93,104,115,NA)),
+    show_col_types = FALSE
+  ))
 
   col_names <- c(
     "time", "sum_r_top", "sum_r_root", "sum_v_top", "sum_v_root",
     "sum_v_bot", "h_top", "h_root", "h_bot", "a_level"
   )
 
-  # Assign column names up to the number of columns present
-  names(df)[seq_along(col_names)] <- col_names[seq_len(ncol(df))]
+  names(df)[seq_len(min(ncol(df), length(col_names)))] <-
+    col_names[seq_len(min(ncol(df), length(col_names)))]
 
   df
 }

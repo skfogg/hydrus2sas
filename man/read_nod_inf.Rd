@@ -19,7 +19,7 @@ A data frame with columns:
     \item{k}{Hydraulic conductivity [L/T]}
     \item{c}{Specific water capacity [1/L]. The water age [T] is
              written instead when particle tracking is considered.}
-    \item{flux}{Nodal value of Darian velocity [L/T]}
+    \item{flux}{Nodal value of Darcian velocity [L/T]}
     \item{sink}{Nodal value of root water uptake [1/T]}
     \item{kappa}{Kappa [-]}
     \item{v_ks_top}{v/KsTop ratio [-]}

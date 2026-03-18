@@ -13,15 +13,15 @@ read_a_level(hydrus_output_path)
 A data frame with columns:
   \describe{
     \item{time}{Simulation time [T]}
-    \item{sum_r_top}{Cumulative flux at top boundary [L]}
-    \item{sum_r_root}{Cumulative root water uptake [L]}
-    \item{sum_v_top}{Cumulative actual flux at top [L]}
-    \item{sum_v_root}{Cumulative actual root uptake [L]}
-    \item{sum_v_bot}{Cumulative flux at bottom boundary [L]}
+    \item{sum_r_top}{Cumulative potential surface flux at top boundary [L]. infiltration -/evaporation +}
+    \item{sum_r_root}{Cumulative potential transpiration [L]}
+    \item{sum_v_top}{Cumulative actual flux at surface [L]}
+    \item{sum_v_root}{Cumulative actual transpiration [L]}
+    \item{sum_v_bot}{Cumulative flux at bottom boundary [L]. inflow +/outflow -.}
     \item{h_top}{Pressure head at top node [L]}
     \item{h_root}{Mean pressure head in root zone [L]}
     \item{h_bot}{Pressure head at bottom node [L]}
-    \item{a_level}{A-level index (integer)}
+    \item{a_level}{A-level index (integer; current variable boundary condition number)}
   }
 }
 \description{

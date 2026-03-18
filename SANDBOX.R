@@ -1,4 +1,4 @@
-particle_ages <- read_part_age("inst/hydrus_output_one_year_more_particles")
+particle_ages <- read_part_age("inst/hydrus_output_one_year")
 
 
 plot(age~time, data = subset(particle_ages, particle_index == "1"))
@@ -47,6 +47,34 @@ soil_column[soil_column$time == 497, "c"] * total_moisture[1]
 plot(node_output[node_output$node == 87 & node_output$time > 400, "flux"], type = "l")
 lines(node_output[node_output$node == 84 & node_output$time > 400, "flux"], col = "red")
 
+## Q in :
+a_level <- read_a_level("inst/hydrus_output_one_year_more_particles")
+plot(a_level$sum_v_top, type = "l")
+plot(a_level$sum_v_root, type = "l")
+plot(a_level$sum_v_bot, type = "l")
+
+plot(node_output[node_output$node == 1 & node_output$time > 400, "flux"], type = "l")
+
+library(readr)
+inputs <- read_fwf("inst/hydrus_output_one_year_more_particles/ATMOSPH.IN",
+                   skip=9,
+                   col_positions = fwf_positions(start = c(8,19,29,40,53,70,82,94),
+                                                 end = c(11,23,35,47,59,71,83,NA)))
+inputs <- inputs[1:861,]
+
+
+colnames(inputs) <- c("tAtm", "Prec", "rSoil", "rRoot", "hCritA", "rB", "hB", "ht")
+
+plot(inputs$Prec[497:861], type = "l")
+plot(inputs$rSoil[497:861], type = "l", ylim = c(0,0.8))
+lines(inputs$rRoot[497:861], type = "l", col = "orange")
+
+ET <- as.numeric(inputs$rSoil) + as.numeric(inputs$rRoot)
+plot(ET, type = "l")
+
+plot(inputs$Prec, type = "l", col = "blue")
+lines(ET, type = "l", col = "green3")
+
 ## uptake
 uptake <- read_uptake("inst/hydrus_output_one_year_more_particles")
 
@@ -73,3 +101,10 @@ cumsum(abs(particles_t1$depth))
 
 plot(total_moisture, type = "o")
 points(unique(particles_year$time) - 497, rep(40, times = length(unique(particles_year$time))))
+
+
+
+get_sas_input(hydrus_output_path = "inst/hydrus_output_one_year_more_particles",
+              depths = c(0,150),
+              times = c(497, 861),
+              node_spacing = 1.75)
