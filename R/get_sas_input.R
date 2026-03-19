@@ -5,10 +5,20 @@
 #' @param times numeric vector of the minimum and maximum times to use for SAS input
 #' @param node_spacing numeric vector of the
 #'
-#' @returns
+#' @returns a data frame with the following columns:
+#' \describe{
+#'    \item{t}{time}
+#'    \item{S}{soil column storage}
+#'    \item{J}{water input at the soil surface (precipitation & irrigation)}
+#'    \item{ET}{evapotranspiration water output at the soil surface}
+#'    \item{Q}{water output at the maximum depth at the soil column (deep percolation)}
+#' }
 #' @export
 #'
-#' @examples
+#' @examples get_sas_input("examples/hydrus_output",
+#'                         depths = c(0, 150),
+#'                         times = c(497, 861),
+#'                         node_spacing = 1.75)
 get_sas_input <- function(hydrus_output_path,
                           depths,
                           times,
@@ -48,14 +58,14 @@ get_sas_input <- function(hydrus_output_path,
     stop("Debugging needed at fwf_positions() function of read_fwf() used to read in ATMOSPH.IN file.")
   }
 
-  ET <- as.numeric(atm_inputs$rSoil) + as.numeric(atm_inputs$rRoot)
-  J <- as.numeric(atm_inputs$Prec)
+  ET <- (as.numeric(atm_inputs$rSoil) + as.numeric(atm_inputs$rRoot))[min(times):max(times)]
+  J <- as.numeric(atm_inputs$Prec)[min(times):max(times)]
 
   # Q, subsurface water fluxes:
   max(depths)
-  Q <- soil_column[soil_column$node == max(depths), "flux"]
+  Q <- soil_column[abs(soil_column$depth) == max(abs(soil_column$depth)), "flux"]
 
-  data.frame(t = unique(soil_column$time) - min(soil_column$time)+1,
+  data.frame(t = unique(soil_column$time) - (min(soil_column$time)-1),
              S = total_moisture,
              J = J,
              ET = ET,

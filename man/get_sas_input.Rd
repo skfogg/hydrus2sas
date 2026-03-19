@@ -15,6 +15,22 @@ get_sas_input(hydrus_output_path, depths, times, node_spacing)
 
 \item{node_spacing}{numeric vector of the}
 }
+\value{
+a data frame with the following columns:
+\describe{
+   \item{t}{time}
+   \item{S}{soil column storage}
+   \item{J}{water input at the soil surface (precipitation & irrigation)}
+   \item{ET}{evapotranspiration water output at the soil surface}
+   \item{Q}{water output at the maximum depth at the soil column (deep percolation)}
+}
+}
 \description{
 Convert output from a HYDRUS model to input used in a SAS model
+}
+\examples{
+get_sas_input("examples/hydrus_output",
+                        depths = c(0, 150),
+                        times = c(497, 861),
+                        node_spacing = 1.75)
 }

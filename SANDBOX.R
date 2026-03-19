@@ -104,7 +104,7 @@ points(unique(particles_year$time) - 497, rep(40, times = length(unique(particle
 
 
 
-get_sas_input(hydrus_output_path = "inst/hydrus_output_one_year_more_particles",
+sas_water_input <- get_sas_input(hydrus_output_path = "inst/hydrus_output_one_year_more_particles",
               depths = c(0,150),
               times = c(497, 861),
               node_spacing = 1.75)
