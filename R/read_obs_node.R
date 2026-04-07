@@ -1,9 +1,9 @@
 #' Read HYDRUS-1D Obs_Node.out file
 #'
 #' Parses the Obs_Node.out output file produced by HYDRUS-1D, which stores
-#' pressure head, water content, and flux at user-specified observation nodes
-#' for every output time.  Returns a long-format data frame (one row per
-#' time-node combination).
+#' pressure head, water content, flux, and (when solute transport is active)
+#' solute concentration at user-specified observation nodes for every output
+#' time.  Returns a long-format data frame (one row per time-node combination).
 #'
 #' @param hydrus_output_path Path to the directory with HYDRUS output.
 #'
@@ -14,6 +14,8 @@
 #'     \item{h}{Pressure head [L]}
 #'     \item{theta}{Volumetric water content [-]}
 #'     \item{flux}{Water flux [L/T]}
+#'     \item{conc}{Solute concentration [M/L3] — present only when solute
+#'       transport is active}
 #'   }
 #'
 #' @export
@@ -36,9 +38,16 @@ read_obs_node <- function(hydrus_output_path) {
   # Find the column-header line (starts with whitespace then "time")
   col_hdr_idx <- grep("^\\s*time\\s+h\\s+theta", lines)[1]
 
+  # Detect variable names per node from the column header
+  hdr_tokens  <- strsplit(trimws(lines[col_hdr_idx]), "\\s+")[[1]]
+  # Tokens after "time" repeat once per node; infer vars per node
+  vars_per_node <- (length(hdr_tokens) - 1L) / n_nodes
+  node_var_names <- tolower(hdr_tokens[seq(2, 1L + vars_per_node)])
+
   # Data starts on the line after the column header
   data_start <- col_hdr_idx + 1
   data_lines <- lines[data_start:length(lines)]
+  data_lines <- data_lines[trimws(data_lines) != "end"]
   data_lines <- data_lines[nzchar(trimws(data_lines))]
 
   df <- read.table(
@@ -47,31 +56,27 @@ read_obs_node <- function(hydrus_output_path) {
     stringsAsFactors = FALSE
   )
 
-  # Build wide column names: time, then (h, theta, flux) per node
+  # Build wide column names: time, then node_var_names per node
   wide_names <- c(
     "time",
     unlist(lapply(node_nums, function(nd) {
-      c(paste0("h_",     nd),
-        paste0("theta_", nd),
-        paste0("flux_",  nd))
+      paste0(node_var_names, "_", nd)
     }))
   )
 
-  # Assign only as many names as there are columns
   names(df)[seq_len(min(ncol(df), length(wide_names)))] <-
     wide_names[seq_len(min(ncol(df), length(wide_names)))]
 
   # Reshape to long format
-  long_list <- lapply(node_nums, function(nd) {
-    data.frame(
-      time  = df[["time"]],
-      node  = nd,
-      h     = df[[paste0("h_",     nd)]],
-      theta = df[[paste0("theta_", nd)]],
-      flux  = df[[paste0("flux_",  nd)]],
+  do.call(rbind, lapply(node_nums, function(nd) {
+    row <- data.frame(
+      time = df[["time"]],
+      node = nd,
       stringsAsFactors = FALSE
     )
-  })
-
-  do.call(rbind, long_list)
+    for (v in node_var_names) {
+      row[[v]] <- df[[paste0(v, "_", nd)]]
+    }
+    row
+  }))
 }

@@ -4,16 +4,23 @@
 \alias{get_sas_input}
 \title{Convert output from a HYDRUS model to input used in a SAS model}
 \usage{
-get_sas_input(hydrus_output_path, depths, times, node_spacing)
+get_sas_input(
+  hydrus_output_path,
+  min_node = 0,
+  max_node,
+  model_times,
+  start_date = "01/01/2021 00:00:00",
+  node_spacing
+)
 }
 \arguments{
 \item{hydrus_output_path}{path to directory where HYDRUS output is}
 
-\item{depths}{numeric vector of the minimum and maximum soil depths of the HYDRUS model}
-
-\item{times}{numeric vector of the minimum and maximum times to use for SAS input}
+\item{model_times}{numeric vector of the minimum and maximum model_times to use for SAS input}
 
 \item{node_spacing}{numeric vector of the}
+
+\item{depths}{numeric vector of the minimum and maximum soil depths of the HYDRUS model}
 }
 \value{
 a data frame with the following columns:
@@ -31,6 +38,6 @@ Convert output from a HYDRUS model to input used in a SAS model
 \examples{
 get_sas_input("examples/hydrus_output",
                         depths = c(0, 150),
-                        times = c(497, 861),
+                        model_times = c(497, 861),
                         node_spacing = 1.75)
 }

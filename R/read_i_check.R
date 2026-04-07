@@ -39,6 +39,7 @@ read_i_check <- function(hydrus_output_path) {
   data_start <- header_idx + 1
 
   data_lines <- lines[data_start:length(lines)]
+  data_lines <- data_lines[trimws(data_lines) != "end"]
   data_lines <- data_lines[nzchar(trimws(data_lines))]
 
   df <- read.table(

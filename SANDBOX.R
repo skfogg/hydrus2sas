@@ -1,3 +1,101 @@
+library(tidyverse)
+library(lubridate)
+library(zoo)
+library(xts)
+
+
+kbr_obs <- read_obs_node("inst/hydrus_output_fairfield_kbr")
+unique(kbr_obs$node)
+plot(conc ~ time, subset(kbr_obs, node == unique(kbr_obs$node)[8]))
+unique(kbr_obs$node)[8]
+plot(subset(kbr_obs, node == unique(kbr_obs$node)[8])$time)
+
+
+bottom_node <- subset(kbr_obs, node == unique(kbr_obs$node)[8])
+real_time <- mdy_hms("01/01/2021 00:00:00") + (bottom_node$time*86400)
+bottom_node_xts <- xts(zoo(bottom_node, order.by = real_time))
+plot.zoo(bottom_node_xts$conc)
+
+plot.zoo(apply.daily(bottom_node_xts$conc, Colmeans), type = "p")
+
+numerical_times <- unique(kbr_obs$time)
+vwc <- numeric(length(numerical_times))
+
+# test_vwc <- tapply(kbr_obs, kbr_obs$time, pracma::trapz, x = kbr_obs$node*1.75, y = kbr_obs$theta)
+
+for(j in numerical_times){
+  one_time <- kbr_obs[kbr_obs$time == j,]
+  vwc[(j-min(unique(kbr_obs$time)))+1] <- pracma::trapz(x = one_time$node*1.75,
+                                                        y = one_time$theta)
+}
+
+max_node = 8
+real_time <- mdy_hms("01/01/2021 00:00:00") + (bottom_node$time*86400)
+
+start_time <- Sys.time()
+daily_mean_theta <- list(0)
+for(i in 1:max_node){
+  this_node <- subset(kbr_obs, node == unique(kbr_obs$node)[i])
+  this_node_theta_xts <- xts(zoo(this_node$theta, order.by = real_time))
+  daily_mean_theta[[i]] <- apply.daily(this_node_theta_xts$x, colMeans)
+}
+end_time <- Sys.time()
+end_time - start_time
+
+daily_mean_theta <- as.data.frame(daily_mean_theta)
+vwc <- numeric(nrow(daily_mean_theta))
+for(i in 1:nrow(daily_mean_theta)){
+  vwc[i] <- pracma::trapz(x = unique(kbr_obs$node)[1:max_node]*1.75,
+                          y = unlist(daily_mean_theta[i,]))
+}
+
+
+
+sas_input_kbr <- get_sas_input("inst/hydrus_output_fairfield_kbr",
+                               max_node = 8,
+                               node_spacing = 1.75)
+write.csv(sas_input_kbr, "inst/hydrus_output_fairfield_kbr/sas_input_kbr.csv")
+
+plot(sas_input_kbr$C_out, type = "l")
+lines(sas_input_kbr$C_in, col = "red")
+
+plot(sas_input_kbr$J, type = "l", col = "blue")
+lines(sas_input_kbr$ET, col = "green")
+lines(sas_input_kbr$Q, col = "violet")
+
+plot(sas_input_kbr$S, type = "l")
+
+
+kbr <- read_solute("inst/hydrus_output_fairfield_kbr", solute = 1)
+head(kbr)
+
+kbr_node <- read_obs_node("inst/hydrus_output_fairfield_kbr")
+
+
+kbr_node_inf <-read_nod_inf("inst/hydrus_output_fairfield_kbr")
+
+unique(kbr_node_inf$time)
+
+kbr_node_inf <- kbr_node_inf %>%
+  filter(time > 0)
+
+plot(depth ~ conc_1_ns_1, data = subset(kbr_node_inf, time == 1334),
+     type = "l")
+mapply(function(x,c) lines(depth ~ conc_1_ns_1, data = subset(kbr_node_inf, time == x), col = c),
+       x = unique(kbr_node_inf$time),
+       c = hcl.colors(365))
+
+kbr_inputs <- read_atmosph_in("inst/hydrus_output_fairfield_kbr")
+
+sas_input_kbr <- get_sas_input("inst/hydrus_output_fairfield_kbr",
+                               depths = c(0, 100),
+                               times = c(1334, 1698),
+                               node_spacing = 1.75)
+plot(S ~ t, sas_input_kbr, type = "l", ylim = c(0, 26))
+lines(J ~ t, sas_input_kbr, col = "blue")
+lines(ET ~ t, sas_input_kbr, col = "forestgreen")
+lines(Q ~ t, sas_input_kbr, col = "red")
+
 particle_ages <- read_part_age("inst/hydrus_output_one_year")
 
 
@@ -12,6 +110,9 @@ one_yr <- storage_age_distribution("inst/hydrus_output_one_year", times = 365)
 
 
 ts1 <- subset(node_output, time == 497)
+
+
+
 
 plot(depth ~ moisture, data = subset(node_output, depth > -150 & time == 497), type = "l", xlim = c(0.1,0.5))
 mapply(function(t,c) lines(depth ~ moisture, data = subset(node_output, depth > -150 & time == t), type = "l", col = c),
@@ -105,6 +206,17 @@ points(unique(particles_year$time) - 497, rep(40, times = length(unique(particle
 
 
 sas_water_input <- get_sas_input(hydrus_output_path = "inst/hydrus_output_one_year_more_particles",
-              depths = c(0,150),
+              depths = c(0,8.75),
               times = c(497, 861),
               node_spacing = 1.75)
+
+plot(with(sas_water_input, S +J - ET +Q),
+     type = "l")
+lines(sas_water_input$S, col = "blue")
+
+# Material 1 0-8.75
+# Material 2 10.5-150.5
+
+
+
+

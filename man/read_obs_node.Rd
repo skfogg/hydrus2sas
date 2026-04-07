@@ -17,11 +17,13 @@ A data frame with columns:
     \item{h}{Pressure head [L]}
     \item{theta}{Volumetric water content [-]}
     \item{flux}{Water flux [L/T]}
+    \item{conc}{Solute concentration [M/L3] — present only when solute
+      transport is active}
   }
 }
 \description{
 Parses the Obs_Node.out output file produced by HYDRUS-1D, which stores
-pressure head, water content, and flux at user-specified observation nodes
-for every output time.  Returns a long-format data frame (one row per
-time-node combination).
+pressure head, water content, flux, and (when solute transport is active)
+solute concentration at user-specified observation nodes for every output
+time.  Returns a long-format data frame (one row per time-node combination).
 }

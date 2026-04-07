@@ -10,25 +10,19 @@ read_nod_inf(hydrus_output_path)
 \item{hydrus_output_path}{Path to the directory with HYDRUS output}
 }
 \value{
-A data frame with columns:
-  \describe{
-    \item{node}{Node index (integer)}
-    \item{depth}{Node depth [L]}
-    \item{head}{Pressure head [L]}
-    \item{moisture}{Volumetric water content [-]}
-    \item{k}{Hydraulic conductivity [L/T]}
-    \item{c}{Specific water capacity [1/L]. The water age [T] is
-             written instead when particle tracking is considered.}
-    \item{flux}{Nodal value of Darcian velocity [L/T]}
-    \item{sink}{Nodal value of root water uptake [1/T]}
-    \item{kappa}{Kappa [-]}
-    \item{v_ks_top}{v/KsTop ratio [-]}
-    \item{temp}{Temperature [C]}
-    \item{time}{Simulation time at which values were recorded [T]}
-  }
+A data frame with one row per node per print time.  Column names
+  match the header in the file (cleaned to snake_case), plus \code{time}.
 }
 \description{
 Parses the Nod_Inf.out output file produced by HYDRUS-1D, which contains
 nodal state variables at multiple saved time levels.  Returns a single
 long-format data frame combining all time blocks.
+}
+\details{
+Column names are derived directly from the header line in the file, cleaned
+to lowercase with non-alphanumeric characters replaced by underscores.
+When the file contains a variable-length placeholder (e.g.
+\code{Conc(1...NS)}), the placeholder is expanded into numbered columns
+(\code{conc_1_ns_1}, \code{conc_1_ns_2}, …) to match the actual number of
+data columns.  A \code{time} column is always appended.
 }
