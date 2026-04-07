@@ -18,13 +18,13 @@ my_solute_parameters = {
 }
 
 def make_model_from(params):
-    a, b = params
+    a, b, s = params
     my_sas_specs = {'Q':
       {'soil column':
         {'scipy.stats': beta,
         'args': { 'a': a,
         'b': b,
-        'scale': 116.0642,
+        'scale': s,
         'loc': 0},
         'nsegment': 500}}}
     return Model(kbr_mesas_data, sas_specs = my_sas_specs, solute_parameters = my_solute_parameters, dt = 1, influx = 'J')
@@ -41,13 +41,14 @@ def minimize_me(params):
  ## initial params
 a = 2.0
 b = 3.0
-params_init = a, b
+s = 20.0
+params_init = a, b, s
  
 params = fmin(minimize_me, params_init)
 
 my_model = make_model_from(params)
 my_model.run()
-my_model.data_df.to_csv('outputs_vari_beta.csv')
+my_model.data_df.to_csv('outputs_vari_beta_2.csv')
  
 
 # my_sas_specs = {
